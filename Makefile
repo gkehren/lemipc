@@ -1,4 +1,4 @@
-FILES:= lemipc
+FILES:= lemipc ipc utils
 NAME:= lemipc
 
 # ------------------
