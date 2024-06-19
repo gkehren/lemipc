@@ -124,6 +124,12 @@ int	main(int argc, char **argv)
 		signal(SIGINT, signal_handler);
 
 	int	team_id = atoi(argv[1]);
+	if (team_id < 0)
+	{
+		fprintf(stderr, "Invalid team id\n");
+		return (1);
+	}
+
 
 	// Attach shared memory
 	lemipc.shm_id = shmget(SHM_KEY, sizeof(t_board), 0666);
