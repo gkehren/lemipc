@@ -57,3 +57,33 @@ void	cleanup_ipc_ressources(t_lemipc *lemipc)
 	// Remove message queue
 	msgctl(lemipc->msgq_id, IPC_RMID, NULL);
 }
+
+int	send_message(int msgq_id, int team_id, char *msg)
+{
+	t_msg	message;
+
+	message.msg_type = team_id;
+	strcpy(message.msg_text, msg);
+	if (msgsnd(msgq_id, &message, sizeof(message.msg_text), 0) < 0)
+	{
+		perror("msgsnd");
+		return (1);
+	}
+	printf("Sent message: %s\n", msg);
+	return (0);
+}
+
+int	receive_message(int msgq_id, int team_id, t_msg *msg)
+{
+	if (msgrcv(msgq_id, msg, sizeof(msg->msg_text), team_id, IPC_NOWAIT) < 0)
+	{
+		if (errno != ENOMSG)
+		{
+			perror("msgrcv");
+			return (1);
+		}
+		else
+			return (2);
+	}
+	return (0);
+}

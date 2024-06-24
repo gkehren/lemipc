@@ -16,31 +16,6 @@ void	signal_handler(int sig)
 	}
 }
 
-int	send_message(int msgq_id, int team_id, char *msg)
-{
-	t_msg	message;
-
-	message.msg_type = team_id;
-	strcpy(message.msg_text, msg);
-	if (msgsnd(msgq_id, &message, sizeof(message.msg_text), 0) < 0)
-	{
-		perror("msgsnd");
-		return (1);
-	}
-	printf("Sent message: %s\n", msg);
-	return (0);
-}
-
-int	receive_message(int msgq_id, int team_id, t_msg *msg)
-{
-	if (msgrcv(msgq_id, msg, sizeof(msg->msg_text), team_id, IPC_NOWAIT) < 0)
-	{
-		perror("msgrcv");
-		return (1);
-	}
-	return (0);
-}
-
 void	player_process(int	team_id)
 {
 	lock_semaphore(lemipc.sem_id);
@@ -50,6 +25,7 @@ void	player_process(int	team_id)
 
 	lemipc.x = rand() % BOARD_SIZE;
 	lemipc.y = rand() % BOARD_SIZE;
+	lemipc.team_id = team_id;
 
 	lock_semaphore(lemipc.sem_id);
 	while (lemipc.board->board[lemipc.x][lemipc.y] != -1)
@@ -96,38 +72,51 @@ void	player_process(int	team_id)
 			break;
 
 		t_msg	msg;
-		receive_message(lemipc.msgq_id, team_id, &msg);
-		printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
-
-		// Move to a random adjacent cell
-		int	dir = rand() % 4;
-		int	new_x = lemipc.x;
-		int	new_y = lemipc.y;
-
-		switch (dir)
+		msg.msg_type = team_id;
+		int ret = receive_message(lemipc.msgq_id, team_id, &msg);
+		if (ret == 1)
+			break;
+		else if (ret == 0) // if we received a message then move towards it
 		{
-			case 0: new_x = lemipc.x - 1; break; // UP
-			case 1: new_x = lemipc.x + 1; break; // DOWN
-			case 2: new_y = lemipc.y - 1; break; // LEFT
-			case 3: new_y = lemipc.y + 1; break; // RIGHT
+			printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
+			// parse the message to get the enemy position (format: enemy_at(x|y))
+			int	enemy_x, enemy_y;
+			sscanf(msg.msg_text, "enemy_at(%d|%d)", &enemy_x, &enemy_y);
+			if (enemy_x < lemipc.x)
+				move_to(&lemipc, UP);
+			else if (enemy_x > lemipc.x)
+				move_to(&lemipc, DOWN);
+			else if (enemy_y < lemipc.y)
+				move_to(&lemipc, LEFT);
+			else if (enemy_y > lemipc.y)
+				move_to(&lemipc, RIGHT);
 		}
-
-		// Check if new position is valid
-		if (new_x >= 0 && new_x < BOARD_SIZE && new_y >= 0 && new_y < BOARD_SIZE)
+		else
 		{
-			lock_semaphore(lemipc.sem_id);
-			// Check if new position is free
-			if (lemipc.board->board[new_x][new_y] == -1)
+			int enemy_x, enemy_y;
+			if (find_enemy(lemipc.board->board, lemipc.x, lemipc.y, &enemy_x, &enemy_y) == 0)
 			{
-				lemipc.board->board[lemipc.x][lemipc.y] = -1;
-				lemipc.board->board[new_x][new_y] = team_id;
-				lemipc.x = new_x;
-				lemipc.y = new_y;
-			}
-			unlock_semaphore(lemipc.sem_id);
-		}
+				if (enemy_x < lemipc.x)
+					move_to(&lemipc, UP);
+				else if (enemy_x > lemipc.x)
+					move_to(&lemipc, DOWN);
+				else if (enemy_y < lemipc.y)
+					move_to(&lemipc, LEFT);
+				else if (enemy_y > lemipc.y)
+					move_to(&lemipc, RIGHT);
 
-		send_message(lemipc.msgq_id, team_id, "Move done!");
+				char str[100];
+				sprintf(str, "enemy_at(%d|%d)", enemy_x, enemy_y);
+				if (send_message(lemipc.msgq_id, team_id, str) != 0)
+					break;
+			}
+			else
+			{
+				// Move to a random adjacent cell
+				t_move_dir	dir = rand() % 4;
+				move_to(&lemipc, dir);
+			}
+		}
 
 		// Sleep for a while
 		sleep(1);

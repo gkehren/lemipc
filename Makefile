@@ -1,4 +1,4 @@
-FILES:= lemipc ipc utils
+FILES:= lemipc ipc move utils
 NAME:= lemipc
 
 # ------------------
