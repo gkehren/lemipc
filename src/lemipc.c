@@ -16,6 +16,31 @@ void	signal_handler(int sig)
 	}
 }
 
+int	send_message(int msgq_id, int team_id, char *msg)
+{
+	t_msg	message;
+
+	message.msg_type = team_id;
+	strcpy(message.msg_text, msg);
+	if (msgsnd(msgq_id, &message, sizeof(message.msg_text), 0) < 0)
+	{
+		perror("msgsnd");
+		return (1);
+	}
+	printf("Sent message: %s\n", msg);
+	return (0);
+}
+
+int	receive_message(int msgq_id, int team_id, t_msg *msg)
+{
+	if (msgrcv(msgq_id, msg, sizeof(msg->msg_text), team_id, IPC_NOWAIT) < 0)
+	{
+		perror("msgrcv");
+		return (1);
+	}
+	return (0);
+}
+
 void	player_process(int	team_id)
 {
 	lock_semaphore(lemipc.sem_id);
@@ -70,6 +95,10 @@ void	player_process(int	team_id)
 		if (team_count(lemipc.board->board, lemipc.sem_id) == 1)
 			break;
 
+		t_msg	msg;
+		receive_message(lemipc.msgq_id, team_id, &msg);
+		printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
+
 		// Move to a random adjacent cell
 		int	dir = rand() % 4;
 		int	new_x = lemipc.x;
@@ -97,6 +126,8 @@ void	player_process(int	team_id)
 			}
 			unlock_semaphore(lemipc.sem_id);
 		}
+
+		send_message(lemipc.msgq_id, team_id, "Move done!");
 
 		// Sleep for a while
 		sleep(1);
