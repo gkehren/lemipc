@@ -37,6 +37,8 @@ void	player_process(int	team_id)
 	lemipc.board->player_count++;
 	unlock_semaphore(lemipc.sem_id);
 
+	srand(time(NULL) ^ (getpid()<<16));
+
 	while (team_count(lemipc.board->board, lemipc.sem_id) < 2)
 		sleep(1);
 
@@ -59,6 +61,7 @@ void	player_process(int	team_id)
 
 		int x = lemipc.x;
 		int y = lemipc.y;
+		int	enemy_x, enemy_y;
 
 		t_msg	msg;
 		msg.msg_type = team_id;
@@ -68,8 +71,31 @@ void	player_process(int	team_id)
 		else if (ret == 0)
 		{
 			printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
-			int	enemy_x, enemy_y;
 			sscanf(msg.msg_text, "enemy_at(%d|%d)", &enemy_x, &enemy_y);
+			if (closest_player(lemipc.board->board, lemipc.x, lemipc.y, team_id, enemy_x, enemy_y) == 1)
+			{
+				if (find_enemy(lemipc.board->board, lemipc.x, lemipc.y, &enemy_x, &enemy_y) == 0)
+				{
+					char str[100];
+					sprintf(str, "enemy_at(%d|%d)", enemy_x, enemy_y);
+					if (send_message(lemipc.msgq_id, team_id, str) != 0)
+						break;
+				}
+			}
+		}
+		else
+		{
+			if (find_enemy(lemipc.board->board, lemipc.x, lemipc.y, &enemy_x, &enemy_y) == 0)
+			{
+				char str[100];
+				sprintf(str, "enemy_at(%d|%d)", enemy_x, enemy_y);
+				if (send_message(lemipc.msgq_id, team_id, str) != 0)
+					break;
+			}
+		}
+
+		if (enemy_x != - 1 && enemy_y != -1)
+		{
 			if (enemy_x < lemipc.x)
 				move_to(&lemipc, UP);
 			else if (enemy_x > lemipc.x)
@@ -80,36 +106,11 @@ void	player_process(int	team_id)
 				move_to(&lemipc, RIGHT);
 		}
 		else
-		{
-			int enemy_x, enemy_y;
-			if (find_enemy(lemipc.board->board, lemipc.x, lemipc.y, &enemy_x, &enemy_y) == 0)
-			{
-				if (enemy_x < lemipc.x)
-					move_to(&lemipc, UP);
-				else if (enemy_x > lemipc.x)
-					move_to(&lemipc, DOWN);
-				else if (enemy_y < lemipc.y)
-					move_to(&lemipc, LEFT);
-				else if (enemy_y > lemipc.y)
-					move_to(&lemipc, RIGHT);
-
-				char str[100];
-				sprintf(str, "enemy_at(%d|%d)", enemy_x, enemy_y);
-				if (send_message(lemipc.msgq_id, team_id, str) != 0)
-					break;
-			}
-			else
-			{
-				// Move to a random adjacent cell
-				t_move_dir	dir = rand() % 4;
-				move_to(&lemipc, dir);
-			}
-		}
+			move_to(&lemipc, rand() % 4);
 
 		if (x == lemipc.x && y == lemipc.y)
 			move_to(&lemipc, rand() % 4);
 
-		// Sleep for a while
 		sleep(1);
 	}
 
@@ -140,7 +141,6 @@ int	main(int argc, char **argv)
 		fprintf(stderr, "Invalid team id\n");
 		return (1);
 	}
-
 
 	// Attach shared memory
 	lemipc.shm_id = shmget(SHM_KEY, sizeof(t_board), 0666);

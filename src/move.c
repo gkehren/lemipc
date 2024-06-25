@@ -47,7 +47,39 @@ int	find_enemy(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int *enemy_x, in
 			}
 		}
 	}
+	*enemy_x = -1;
+	*enemy_y = -1;
 	return (1);
+}
+
+int closest_player(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int team_id, int enemy_x, int enemy_y)
+{
+	int player_distance = abs(x - enemy_x) + abs(y - enemy_y);
+	int closest_distance = INT_MAX;
+	int second_closest_distance = INT_MAX;
+
+	for (int i = 0; i < BOARD_SIZE; i++)
+	{
+		for (int j = 0; j < BOARD_SIZE; j++)
+		{
+			if (board[i][j] == team_id)
+			{
+				int distance = abs(i - enemy_x) + abs(j - enemy_y);
+				if (distance < closest_distance)
+				{
+					second_closest_distance = closest_distance;
+					closest_distance = distance;
+				}
+				else if (distance < second_closest_distance)
+					second_closest_distance = distance;
+			}
+		}
+	}
+
+	if (player_distance == closest_distance || player_distance == second_closest_distance)
+		return (0);
+	else
+		return (1);
 }
 
 int	check_adjcent_enemies(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int team_id)

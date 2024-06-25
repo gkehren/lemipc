@@ -12,9 +12,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <time.h>
+#include <limits.h>
 
 #define BOARD_SIZE	25
-#define VIEW_DIST	2
+#define VIEW_DIST	5
 
 #define SHM_KEY		42
 #define SEM_KEY		43
@@ -61,6 +63,7 @@ int		receive_message(int msgq_id, int team_id, t_msg *msg);
 // move.c
 int		move_to(t_lemipc *lemipc, t_move_dir dir);
 int		find_enemy(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int *enemy_x, int *enemy_y);
+int		closest_player(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int team_id, int enemy_x, int enemy_y);
 int		check_adjcent_enemies(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int team_id);
 
 // utils.c
