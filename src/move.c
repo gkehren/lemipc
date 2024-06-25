@@ -49,3 +49,27 @@ int	find_enemy(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int *enemy_x, in
 	}
 	return (1);
 }
+
+int	check_adjcent_enemies(int board[BOARD_SIZE][BOARD_SIZE], int x, int y, int team_id)
+{
+	int	adjcent_enemies = 0;
+
+	if (x > 0 && board[x - 1][y] != -1 && board[x - 1][y] != team_id)
+		adjcent_enemies++;
+	if (x < BOARD_SIZE - 1 && board[x + 1][y] != -1 && board[x + 1][y] != team_id)
+		adjcent_enemies++;
+	if (y > 0 && board[x][y - 1] != -1 && board[x][y - 1] != team_id)
+		adjcent_enemies++;
+	if (y < BOARD_SIZE - 1 && board[x][y + 1] != -1 && board[x][y + 1] != team_id)
+		adjcent_enemies++;
+	if (x > 0 && y > 0 && board[x - 1][y - 1] != -1 && board[x - 1][y - 1] != team_id)
+		adjcent_enemies++;
+	if (x > 0 && y < BOARD_SIZE - 1 && board[x - 1][y + 1] != -1 && board[x - 1][y + 1] != team_id)
+		adjcent_enemies++;
+	if (x < BOARD_SIZE - 1 && y > 0 && board[x + 1][y - 1] != -1 && board[x + 1][y - 1] != team_id)
+		adjcent_enemies++;
+	if (x < BOARD_SIZE - 1 && y < BOARD_SIZE - 1 && board[x + 1][y + 1] != -1 && board[x + 1][y + 1] != team_id)
+		adjcent_enemies++;
+
+	return (adjcent_enemies);
+}

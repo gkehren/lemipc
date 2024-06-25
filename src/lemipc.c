@@ -44,42 +44,30 @@ void	player_process(int	team_id)
 	while (1)
 	{
 		// Check death condition
-		int	adjcent_enemies = 0;
-
-		if (lemipc.x > 0 && lemipc.board->board[lemipc.x - 1][lemipc.y] != -1 && lemipc.board->board[lemipc.x - 1][lemipc.y] != team_id)
-			adjcent_enemies++;
-		if (lemipc.x < BOARD_SIZE - 1 && lemipc.board->board[lemipc.x + 1][lemipc.y] != -1 && lemipc.board->board[lemipc.x + 1][lemipc.y] != team_id)
-			adjcent_enemies++;
-		if (lemipc.y > 0 && lemipc.board->board[lemipc.x][lemipc.y - 1] != -1 && lemipc.board->board[lemipc.x][lemipc.y - 1] != team_id)
-			adjcent_enemies++;
-		if (lemipc.y < BOARD_SIZE - 1 && lemipc.board->board[lemipc.x][lemipc.y + 1] != -1 && lemipc.board->board[lemipc.x][lemipc.y + 1] != team_id)
-			adjcent_enemies++;
-		if (lemipc.x > 0 && lemipc.y > 0 && lemipc.board->board[lemipc.x - 1][lemipc.y - 1] != -1 && lemipc.board->board[lemipc.x - 1][lemipc.y - 1] != team_id)
-			adjcent_enemies++;
-		if (lemipc.x > 0 && lemipc.y < BOARD_SIZE - 1 && lemipc.board->board[lemipc.x - 1][lemipc.y + 1] != -1 && lemipc.board->board[lemipc.x - 1][lemipc.y + 1] != team_id)
-			adjcent_enemies++;
-		if (lemipc.x < BOARD_SIZE - 1 && lemipc.y > 0 && lemipc.board->board[lemipc.x + 1][lemipc.y - 1] != -1 && lemipc.board->board[lemipc.x + 1][lemipc.y - 1] != team_id)
-			adjcent_enemies++;
-		if (lemipc.x < BOARD_SIZE - 1 && lemipc.y < BOARD_SIZE - 1 && lemipc.board->board[lemipc.x + 1][lemipc.y + 1] != -1 && lemipc.board->board[lemipc.x + 1][lemipc.y + 1] != team_id)
-			adjcent_enemies++;
-
-		// If surrounded by at least 2 enemies, die
-		if (adjcent_enemies >= 2)
+		if (check_adjcent_enemies(lemipc.board->board, lemipc.x, lemipc.y, team_id) >= 2)
+		{
+			printf("A player from team %d died\n", team_id);
 			break;
+		}
 
 		// Check if we are the last team
 		if (team_count(lemipc.board->board, lemipc.sem_id) == 1)
+		{
+			printf("Team %d won\n", team_id);
 			break;
+		}
+
+		int x = lemipc.x;
+		int y = lemipc.y;
 
 		t_msg	msg;
 		msg.msg_type = team_id;
 		int ret = receive_message(lemipc.msgq_id, team_id, &msg);
 		if (ret == 1)
 			break;
-		else if (ret == 0) // if we received a message then move towards it
+		else if (ret == 0)
 		{
 			printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
-			// parse the message to get the enemy position (format: enemy_at(x|y))
 			int	enemy_x, enemy_y;
 			sscanf(msg.msg_text, "enemy_at(%d|%d)", &enemy_x, &enemy_y);
 			if (enemy_x < lemipc.x)
@@ -117,6 +105,9 @@ void	player_process(int	team_id)
 				move_to(&lemipc, dir);
 			}
 		}
+
+		if (x == lemipc.x && y == lemipc.y)
+			move_to(&lemipc, rand() % 4);
 
 		// Sleep for a while
 		sleep(1);
