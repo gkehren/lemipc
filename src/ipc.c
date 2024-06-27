@@ -38,7 +38,7 @@ void	init_ipc_ressources(t_lemipc *lemipc)
 	}
 
 	// Init board
-	memset(lemipc->board->board, -1, sizeof(lemipc->board->board));
+	ft_memset(lemipc->board->board, -1, sizeof(lemipc->board->board));
 	lemipc->board->player_count = 0;
 	lemipc->board->init = 1;
 }
@@ -63,13 +63,13 @@ int	send_message(int msgq_id, int team_id, char *msg)
 	t_msg	message;
 
 	message.msg_type = team_id;
-	strcpy(message.msg_text, msg);
+	ft_strcpy(message.msg_text, msg);
 	if (msgsnd(msgq_id, &message, sizeof(message.msg_text), 0) < 0)
 	{
 		perror("msgsnd");
 		return (1);
 	}
-	printf("Sent message: %s\n", msg);
+	ft_printf("Sent message: %s\n", msg);
 	return (0);
 }
 

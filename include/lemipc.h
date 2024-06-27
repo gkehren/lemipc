@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <time.h>
 #include <limits.h>
+#include "../libft/libft.h"
 
 #define BOARD_SIZE	25
 #define VIEW_DIST	5

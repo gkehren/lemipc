@@ -24,17 +24,17 @@ void	display_board(int board[BOARD_SIZE][BOARD_SIZE], int sem_id)
 {
 	lock_semaphore(sem_id);
 
-	printf("\033[H\033[J");
+	ft_printf("\033[H\033[J");
 	for (int i = 0; i < BOARD_SIZE; i++)
 	{
 		for (int j = 0; j < BOARD_SIZE; j++)
 		{
 			if (board[i][j] == -1)
-				printf(".");
+				ft_printf(".");
 			else
-				printf("%d", board[i][j]);
+				ft_printf("%d", board[i][j]);
 		}
-		printf("\n");
+		ft_printf("\n");
 	}
 
 	unlock_semaphore(sem_id);
@@ -45,7 +45,7 @@ int	team_count(int board[BOARD_SIZE][BOARD_SIZE], int sem_id)
 	lock_semaphore(sem_id);
 
 	int	teams[BOARD_SIZE * BOARD_SIZE];
-	memset(teams, -1, sizeof(teams));
+	ft_memset(teams, -1, sizeof(teams));
 	int	team_count = 0;
 	for (int i = 0; i < BOARD_SIZE; i++)
 	{

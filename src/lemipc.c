@@ -48,14 +48,14 @@ void	player_process(int	team_id)
 		// Check death condition
 		if (check_adjcent_enemies(lemipc.board->board, lemipc.x, lemipc.y, team_id) >= 2)
 		{
-			printf("A player from team %d died\n", team_id);
+			ft_printf("A player from team %d died\n", team_id);
 			break;
 		}
 
 		// Check if we are the last team
 		if (team_count(lemipc.board->board, lemipc.sem_id) == 1)
 		{
-			printf("Team %d won\n", team_id);
+			ft_printf("Team %d won\n", team_id);
 			break;
 		}
 
@@ -70,7 +70,7 @@ void	player_process(int	team_id)
 			break;
 		else if (ret == 0)
 		{
-			printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
+			ft_printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
 			sscanf(msg.msg_text, "enemy_at(%d|%d)", &enemy_x, &enemy_y);
 			if (closest_player(lemipc.board->board, lemipc.x, lemipc.y, team_id, enemy_x, enemy_y) == 1)
 			{
@@ -127,10 +127,10 @@ int	main(int argc, char **argv)
 	int	display = 0;
 	if (argc != 2)
 	{
-		fprintf(stderr, "Usage: %s <team_id>\n", argv[0]);
+		ft_printf("Usage: %s <team_id>\n", argv[0]);
 		return (1);
 	}
-	if (strcmp(argv[1], "display") == 0)
+	if (ft_strcmp(argv[1], "display") == 0)
 		display = 1;
 	else
 		signal(SIGINT, signal_handler);
@@ -138,7 +138,7 @@ int	main(int argc, char **argv)
 	int	team_id = atoi(argv[1]);
 	if (team_id < 0)
 	{
-		fprintf(stderr, "Invalid team id\n");
+		ft_printf("Invalid team id\n");
 		return (1);
 	}
 
@@ -148,7 +148,7 @@ int	main(int argc, char **argv)
 	{
 		if (display == 1)
 		{
-			fprintf(stderr, "No shared memory found (the game needs to be started first)\n");
+			ft_printf("No shared memory found (the game needs to be started first)\n");
 			return (1);
 		}
 		if (errno == ENOENT)
