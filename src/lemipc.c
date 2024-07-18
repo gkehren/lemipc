@@ -65,13 +65,14 @@ void	player_process(int	team_id)
 
 		t_msg	msg;
 		msg.msg_type = team_id;
+		msg.msg_text[0] = '\0';
 		int ret = receive_message(lemipc.msgq_id, team_id, &msg);
 		if (ret == 1)
 			break;
 		else if (ret == 0)
 		{
-			ft_printf("Received message(%ld): %s\n", msg.msg_type, msg.msg_text);
 			sscanf(msg.msg_text, "enemy_at(%d|%d)", &enemy_x, &enemy_y);
+			ft_printf("Received message: %s\n", msg.msg_text);
 			if (closest_player(lemipc.board->board, lemipc.x, lemipc.y, team_id, enemy_x, enemy_y) == 1)
 			{
 				if (find_enemy(lemipc.board->board, lemipc.x, lemipc.y, &enemy_x, &enemy_y) == 0)

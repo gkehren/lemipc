@@ -58,11 +58,12 @@ void	cleanup_ipc_ressources(t_lemipc *lemipc)
 	msgctl(lemipc->msgq_id, IPC_RMID, NULL);
 }
 
-int	send_message(int msgq_id, int team_id, char *msg)
+int send_message(int msgq_id, int team_id, char *msg)
 {
-	t_msg	message;
+	t_msg message;
 
 	message.msg_type = team_id;
+	ft_memset(message.msg_text, 0, sizeof(message.msg_text)); // Initialize msg_text
 	ft_strcpy(message.msg_text, msg);
 	if (msgsnd(msgq_id, &message, sizeof(message.msg_text), 0) < 0)
 	{
